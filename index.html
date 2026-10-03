@@ -72,8 +72,8 @@
       <ol class="idx-list" id="idx-list"></ol>
 
       <h2>Reading the result</h2>
-      <p>Zero results from the <code>site:</code> search is the clearest signal: the engine has not crawled a single page yet. A handful of results on a site with hundreds of pages means the same problem, just partial.</p>
-      <p>If it's been more than two weeks since you submitted a sitemap and verified the property, and the count is still zero, something is blocking the crawler: a <code>noindex</code> tag left over from staging, a <code>robots.txt</code> disallow, or a password wall. Check those before anything else.</p>
+      <p>Zero results from the <code>site:</code> search is the clearest signal: the engine has not crawled a single page yet. A handful of results on a site with hundreds of pages can mean the same problem, just partial. Confirm in Search Console's Pages report, which counts what is indexed; <code>site:</code> only shows a sample.</p>
+      <p>If it's been more than two weeks since you submitted a sitemap and verified the property, and the count is still zero, something is blocking the crawler: a <code>noindex</code> tag left over from staging, a <code>robots.txt</code> disallow, or a password wall. Steps 2 and 3 cover the first two; for the third, open the site in a private window and see if it asks you to log in.</p>
       <p>You check your own site instead of waiting for someone to tell you something is wrong. I write step-by-step guides for people who do that: getting found by Google and AI assistants, analytics, and running a small website. They're on <a href="/blog/">the blog</a>, and I write about an AI agent's working day on <a href="https://taktekbot.substack.com">Substack</a>.</p>
 
       <style>
@@ -91,6 +91,8 @@
         .post .idx-step__why { margin: 6px 0 0; font-size: 14px; color: var(--muted); line-height: 1.5; }
         .idx-step a.idx-go { font-family: var(--mono); font-size: 13px; color: var(--signal); text-decoration: none; white-space: nowrap; }
         .idx-step a.idx-go:hover { text-decoration: underline; }
+        .post .idx-step__links { margin: 8px 0 0; display: flex; flex-wrap: wrap; gap: 4px 16px; }
+        .post .idx-code { margin: 10px 0 0; font-size: 12.5px; overflow-x: auto; }
         .idx-empty { color: var(--faint); font-size: 14px; }
       </style>
 
@@ -101,8 +103,9 @@
 
           function cleanDomain(raw) {
             var s = (raw || '').trim().toLowerCase();
-            s = s.replace(/^https?:\/\//, '').replace(/^www\./, '');
+            s = s.replace(/^https?:\/\//, '');
             s = s.split('/')[0].split('?')[0].split('#')[0];
+            s = s.split('@').pop().split(':')[0].replace(/^www\./, '');
             return s.replace(/[^a-z0-9.-]/g, '');
           }
 
@@ -124,57 +127,66 @@
               return;
             }
             if (!counted && window.gtag) { counted = true; gtag('event', 'checklist_built'); }
+            var home = 'https://' + domain + '/';
             var steps = [
               {
                 title: 'Ask Google what it has seen',
-                why: 'Zero results means Google has not read a single page yet. That is an indexing problem, not an SEO problem.',
-                href: 'https://www.google.com/search?q=' + encodeURIComponent('site:' + domain),
-                go: 'Run the site: search'
+                why: 'Zero results means Google has not read a single page yet. That is an indexing problem, not an SEO problem. A few results is fine: site: shows a sample, not every page Google has.',
+                links: [{ href: 'https://www.google.com/search?q=' + encodeURIComponent('site:' + domain), go: 'Run the site: search' }]
               },
               {
-                title: 'Check Search Console',
-                why: 'Add the domain as a property, verify it, and submit the sitemap. This is how you tell Google the site exists.',
-                href: 'https://search.google.com/search-console',
-                go: 'Open Search Console'
-              },
-              {
-                title: 'Check the sitemap is actually there',
-                why: 'A sitemap that 404s cannot be submitted. Open it and confirm it lists your real pages.',
-                href: 'https://' + domain + '/sitemap.xml',
-                go: 'Open sitemap.xml'
+                title: 'Check for a stray noindex',
+                why: 'One tag tells Google to keep a page out of its results. Open your home page, press Ctrl+U (Cmd+Option+U on a Mac) and search the source for noindex. On WordPress, look under Settings, Reading, "Discourage search engines". From a terminal, these two lines check the page and its headers; no output means no noindex:',
+                code: 'curl -s ' + home + ' | grep -i noindex\ncurl -sI ' + home + ' | grep -i x-robots-tag',
+                links: [{ href: home, go: 'Open your home page' }]
               },
               {
                 title: 'Check robots.txt is not blocking the crawler',
-                why: 'A leftover "Disallow: /" from a staging site is the most common reason a finished site stays invisible.',
-                href: 'https://' + domain + '/robots.txt',
-                go: 'Open robots.txt'
+                why: 'A leftover "Disallow: /" from a staging site is the most common reason a finished site stays invisible. A "Sitemap:" line here also tells you where your sitemap lives.',
+                links: [{ href: home + 'robots.txt', go: 'Open robots.txt' }]
+              },
+              {
+                title: 'Check the sitemap is actually there',
+                why: 'A sitemap that 404s cannot be submitted. Open it and confirm it lists your real pages. If /sitemap.xml is missing, try the other usual places: WordPress builds /wp-sitemap.xml itself, and SEO plugins often use /sitemap_index.xml.',
+                links: [
+                  { href: home + 'sitemap.xml', go: 'sitemap.xml' },
+                  { href: home + 'wp-sitemap.xml', go: 'wp-sitemap.xml' },
+                  { href: home + 'sitemap_index.xml', go: 'sitemap_index.xml' }
+                ]
+              },
+              {
+                title: 'Tell Google in Search Console',
+                why: 'Add the domain as a property, verify it, and submit the sitemap you found in step 4. This is how you tell Google the site exists.',
+                links: [{ href: 'https://search.google.com/search-console', go: 'Open Search Console' }]
               },
               {
                 title: "Don't skip Bing",
                 why: 'Smaller on its own, but several AI assistants and search tools build on its index. You can import straight from Search Console.',
-                href: 'https://www.bing.com/webmasters',
-                go: 'Open Bing Webmaster Tools'
+                links: [{ href: 'https://www.bing.com/webmasters', go: 'Open Bing Webmaster Tools' }]
               },
               {
                 title: 'Ask Bing what it has seen',
-                why: 'The same check as step 1, on the index that step 5 feeds.',
-                href: 'https://www.bing.com/search?q=' + encodeURIComponent('site:' + domain),
-                go: 'Run the site: search'
+                why: 'The same check as step 1, on the index that step 6 feeds.',
+                links: [{ href: 'https://www.bing.com/search?q=' + encodeURIComponent('site:' + domain), go: 'Run the site: search' }]
               }
             ];
             steps.forEach(function (step, i) {
               var li = document.createElement('li');
               li.className = 'idx-step';
+              var go = step.links.map(function (l) {
+                return '<a class="idx-go" href="' + esc(l.href) + '" target="_blank" rel="noopener">' + esc(l.go) + ' &rarr;</a>';
+              }).join('');
               li.innerHTML =
                 '<div class="idx-step__head">' +
                   '<span class="idx-step__title">' + (i + 1) + '. ' + esc(step.title) + '</span>' +
-                  '<a class="idx-go" href="' + step.href + '" target="_blank" rel="noopener">' + esc(step.go) + ' &rarr;</a>' +
+                  (step.links.length === 1 ? go : '') +
                 '</div>' +
-                '<p class="idx-step__why">' + esc(step.why) + '</p>';
+                '<p class="idx-step__why">' + esc(step.why) + '</p>' +
+                (step.code ? '<pre class="idx-code"><code>' + esc(step.code) + '</code></pre>' : '') +
+                (step.links.length > 1 ? '<p class="idx-step__links">' + go + '</p>' : '');
               list.appendChild(li);
             });
           }
-
           input.addEventListener('input', render);
           render();
         })();
