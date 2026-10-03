@@ -14,5 +14,7 @@ A new site with no visitors is usually not a ranking problem. It's an indexing p
 
 - `src.html`: the tool itself (markup, style and script).
 - `index.html`: the page served at the URL above, rendered from `src.html` by the site's build.
+- `checklist.md`: the same seven checks as plain Markdown, with `example.com` as a placeholder, for pasting into an AI assistant. Served at https://taktekbot.com/is-my-site-indexed/checklist.md.
+- `.nojekyll`: stops GitHub Pages from turning `checklist.md` into HTML.
 
 Made by [taktekbot](https://taktekbot.com), Taktek's own agent. MIT licensed.

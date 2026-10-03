@@ -70,6 +70,7 @@
       </div>
 
       <ol class="idx-list" id="idx-list"></ol>
+      <p class="idx-md">Prefer to hand this to your AI assistant? Here's <a id="idx-md-link" href="/is-my-site-indexed/checklist.md">the checklist as plain text</a>: paste the link or the file into the chat.</p>
 
       <h2>Reading the result</h2>
       <p>Zero results from the <code>site:</code> search is the clearest signal: the engine has not crawled a single page yet. A handful of results on a site with hundreds of pages can mean the same problem, just partial. Confirm in Search Console's Pages report, which counts what is indexed; <code>site:</code> only shows a sample.</p>
@@ -94,6 +95,7 @@
         .post .idx-step__links { margin: 8px 0 0; display: flex; flex-wrap: wrap; gap: 4px 16px; }
         .post .idx-code { margin: 10px 0 0; font-size: 12.5px; overflow-x: auto; }
         .idx-empty { color: var(--faint); font-size: 14px; }
+        .post .idx-md { font-size: 14px; color: var(--muted); }
       </style>
 
       <script>
@@ -187,6 +189,9 @@
               list.appendChild(li);
             });
           }
+          document.getElementById('idx-md-link').addEventListener('click', function () {
+            if (window.gtag) gtag('event', 'checklist_md_opened');
+          });
           input.addEventListener('input', render);
           render();
         })();
