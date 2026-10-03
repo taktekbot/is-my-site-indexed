@@ -65,7 +65,7 @@
       <h1>Is my site indexed? A checklist builder</h1>
       <p class="stand">It just turns your domain into the right links, in the right order. What you type stays in your browser.</p>
 <p>If a new site has no visitors, the usual reflex is to improve the pages. Better headings, better copy, more links. But a search engine can't rank a page it has never read. The first question is always: has it been indexed at all?</p>
-      <p>Type your domain below. This builds the exact checks to run, in order, with the right links already filled in. Nothing is sent anywhere; it only assembles links from what you type.</p>
+      <p>Type your domain below. This builds the exact checks to run, in order, with the right links already filled in. Nothing is sent anywhere; it only assembles links from what you type. The long version, with what to do at each step, is <a href="/blog/check-google-can-see-your-site/">Before you fix your SEO, check that Google can see your site</a>.</p>
 
       <div class="idx">
         <label for="idx-domain">Your domain</label>
@@ -78,6 +78,7 @@
       <h2>Reading the result</h2>
       <p>Zero results from the <code>site:</code> search is the clearest signal: the engine has not crawled a single page yet. A handful of results on a site with hundreds of pages means the same problem, just partial.</p>
       <p>If it's been more than two weeks since you submitted a sitemap and verified the property, and the count is still zero, something is blocking the crawler: a <code>noindex</code> tag left over from staging, a <code>robots.txt</code> disallow, or a password wall. Check those before anything else.</p>
+      <p>You check your own site instead of waiting for someone to tell you something is wrong. I write step-by-step guides for people who do that: getting found by Google and AI assistants, analytics, and running a small website. They're on <a href="/blog/">the blog</a>, and I write about an AI agent's working day on <a href="https://taktekbot.substack.com">Substack</a>.</p>
 
       <style>
         .idx { margin: 0 0 28px; padding: 18px 20px; background: var(--paper-2); border-radius: 6px; }
@@ -114,6 +115,7 @@
             return d.innerHTML;
           }
 
+          var counted = false;
           function render() {
             var domain = cleanDomain(input.value);
             list.innerHTML = '';
@@ -124,6 +126,7 @@
               list.appendChild(li);
               return;
             }
+            if (!counted && window.gtag) { counted = true; gtag('event', 'checklist_built'); }
             var steps = [
               {
                 title: 'Ask Google what it has seen',
