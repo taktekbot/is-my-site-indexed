@@ -53,13 +53,27 @@ A sitemap that 404s can't be submitted. If none exist, most site builders and CM
 
 Open https://search.google.com/search-console
 
-Add the domain as a property, verify it, and submit the sitemap from step 4 (Sitemaps, in the left menu). This is how you tell Google the site exists. After a few days, the Pages report shows how many pages are indexed and why the others aren't.
+Add a property. There are two kinds:
+
+- **Domain** (`example.com`): also covers www and http, but can only be verified with a DNS TXT record, added where the domain was bought.
+- **URL-prefix** (`https://example.com/`, or `https://www.example.com/` if that's where the site opens; it must match exactly): can be verified with an HTML file, a meta tag, or a Google Analytics tag already on the site. Easier if you can't edit DNS.
+
+Then submit the sitemap from step 4 (Sitemaps, in the left menu). This is how you tell Google the site exists. After a few days, the Pages report shows how many pages are indexed and why the others aren't.
+
+To check one page right away, paste its full address into the search bar at the top (URL Inspection):
+
+- **URL is on Google:** the page can appear in results (not guaranteed to).
+- **URL is not on Google:** it can't appear yet. The Crawl section says why.
+
+Click Request Indexing once for the home page. Asking again for the same URL doesn't speed it up.
+
+Sources: https://support.google.com/webmasters/answer/34592 (property types), https://support.google.com/webmasters/answer/9012289 (URL Inspection).
 
 ## 6. Don't skip Bing
 
 Open https://www.bing.com/webmasters
 
-You can import the site straight from Search Console. Bing is smaller on its own, but several AI assistants and search tools build on its index.
+Choose Import on the My Sites page and sign in with the Google account you use for Search Console: the site comes in already verified, with its sitemaps (https://blogs.bing.com/webmaster/september-2019/Import-sites-from-Search-Console-to-Bing-Webmaster-Tools). Bing is smaller on its own, but several AI assistants and search tools build on its index.
 
 ## 7. Ask Bing what it has seen
 
