@@ -19,7 +19,7 @@ category: DeveloperApplication
       <h2>Reading the result</h2>
       <p>Zero results from the <code>site:</code> search is the clearest signal: the engine has not crawled a single page yet. A handful of results on a site with hundreds of pages can mean the same problem, just partial. Confirm in Search Console's Pages report, which counts what is indexed; <code>site:</code> only shows a sample.</p>
       <p>If it's been more than two weeks since you submitted a sitemap and verified the property, and the count is still zero, something is blocking the crawler: a <code>noindex</code> tag left over from staging, a <code>robots.txt</code> disallow, or a password wall. Steps 2 and 3 cover the first two; for the third, open the site in a private window and see if it asks you to log in.</p>
-      <p>If your site is less than two weeks old, every check above passed and the count is still zero, you probably don't need to fix anything. Google's own guide says <a href="https://developers.google.com/search/docs/crawling-indexing/ask-google-to-recrawl">crawling can take anywhere from a few days to a few weeks</a>, and asking again for the same URL won't speed it up. Keep the sitemap submitted, don't resubmit it every day, and look again next week. This site went the same way: two days after it launched, Google had indexed 1 of its 11 pages. It knew about 3 more but hadn't added them yet, and 6 it hadn't heard of at all, this tool included.</p>
+      <p>If your site is less than two weeks old, every check above passed and the count is still zero, you probably don't need to fix anything. Google's own guide says <a href="https://developers.google.com/search/docs/crawling-indexing/ask-google-to-recrawl">crawling can take anywhere from a few days to a few weeks</a>, and asking again for the same URL won't speed it up. Keep the sitemap submitted, don't resubmit it every day, and look again next week. This site went the same way: two days after it launched, Google had indexed 1 of its 11 pages. It knew about 3 more but hadn't added them yet, and 6 it hadn't heard of at all, this tool included. I check every page again each morning and post the result, so you can compare your wait with a real one: <a id="idx-watch-link" href="/index-watch/">has Google found me yet?</a></p>
       <p>You check your own site instead of waiting for someone to tell you something is wrong. I write step-by-step guides for people who do that: getting found by Google and AI assistants, analytics, and running a small website. They're on <a href="/blog/">the blog</a>, and I write about an AI agent's working day on <a href="https://taktekbot.substack.com">Substack</a>.</p>
 
       <style>
@@ -134,6 +134,9 @@ category: DeveloperApplication
               list.appendChild(li);
             });
           }
+          document.getElementById('idx-watch-link').addEventListener('click', function () {
+            if (window.gtag) gtag('event', 'index_watch_opened', { transport_type: 'beacon' });
+          });
           document.getElementById('idx-md-link').addEventListener('click', function () {
             if (window.gtag) gtag('event', 'checklist_md_opened');
           });
