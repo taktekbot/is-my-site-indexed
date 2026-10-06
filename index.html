@@ -60,17 +60,19 @@
       <p class="eyebrow"><a href="/tools/">Free tool</a></p>
       <h1>Is my site indexed? A checklist builder</h1>
       <p class="stand">It just turns your domain into the right links, in the right order. What you type stays in your browser.</p>
-<p>If a new site has no visitors, the usual reflex is to improve the pages. Better headings, better copy, more links. But a search engine can't rank a page it has never read. The first question is always: has it been indexed at all?</p>
-      <p>Type your domain below. This builds the exact checks to run, in order, with the right links already filled in. Nothing is sent anywhere; it only assembles links from what you type. The long version, with what to do at each step, is <a href="/blog/check-google-can-see-your-site/">Before you fix your SEO, check that Google can see your site</a>.</p>
+<p>Type your domain. You get the checks to run, in order, with the links already filled in. Nothing you type is sent anywhere.</p>
 
       <div class="idx">
         <label for="idx-domain">Your domain</label>
         <input id="idx-domain" type="text" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="example.com">
-        <p class="idx-hint">Just the domain, with or without <code>https://</code>.</p>
+        <p class="idx-hint">Just the domain, with or without <code>https://</code>. <button type="button" class="idx-sample" id="idx-sample">Try a sample</button></p>
       </div>
 
       <ol class="idx-list" id="idx-list"></ol>
       <p class="idx-md">Prefer to hand this to your AI assistant? Here's <a id="idx-md-link" href="/is-my-site-indexed/checklist.md">the checklist as plain text</a>: paste the link or the file into the chat.</p>
+
+      <h2>Why check this first</h2>
+      <p>If a new site has no visitors, the usual reflex is to improve the pages. Better headings, better copy, more links. But a search engine can't rank a page it has never read. The first question is always: has it been indexed at all? The long version, with what to do at each step, is <a href="/blog/check-google-can-see-your-site/">Before you fix your SEO, check that Google can see your site</a>.</p>
 
       <h2>Reading the result</h2>
       <p>Zero results from the <code>site:</code> search is the clearest signal: the engine has not crawled a single page yet. A handful of results on a site with hundreds of pages can mean the same problem, just partial. Confirm in Search Console's Pages report, which counts what is indexed; <code>site:</code> only shows a sample.</p>
@@ -96,6 +98,7 @@
         .post .idx-step__links { margin: 8px 0 0; display: flex; flex-wrap: wrap; gap: 4px 16px; }
         .post .idx-code { margin: 10px 0 0; font-size: 12.5px; overflow-x: auto; }
         .idx-empty { color: var(--faint); font-size: 14px; }
+        .post .idx-sample { margin-left: 4px; padding: 0; font: inherit; color: var(--signal); background: none; border: 0; text-decoration: underline; cursor: pointer; }
         .post .idx-md { font-size: 14px; color: var(--muted); }
       </style>
 
@@ -119,6 +122,7 @@
           }
 
           var counted = false;
+          var sample = false;
           function render() {
             var domain = cleanDomain(input.value);
             list.innerHTML = '';
@@ -129,7 +133,7 @@
               list.appendChild(li);
               return;
             }
-            if (!counted && window.gtag) { counted = true; gtag('event', 'checklist_built'); }
+            if (!sample && !counted && window.gtag) { counted = true; gtag('event', 'checklist_built'); }
             var home = 'https://' + domain + '/';
             var steps = [
               {
@@ -196,7 +200,13 @@
           document.getElementById('idx-md-link').addEventListener('click', function () {
             if (window.gtag) gtag('event', 'checklist_md_opened');
           });
-          input.addEventListener('input', render);
+          input.addEventListener('input', function () { sample = false; render(); });
+          document.getElementById('idx-sample').addEventListener('click', function () {
+            input.value = 'example.com';
+            sample = true;
+            render();
+            if (window.gtag) gtag('event', 'sample_tried');
+          });
           render();
         })();
       </script>
