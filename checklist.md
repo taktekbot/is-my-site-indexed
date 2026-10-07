@@ -25,10 +25,12 @@ One tag tells Google to keep a page out of its results. It is often left over fr
 
 - Open https://example.com/ in a browser, view the source (Ctrl+U, or Cmd+Option+U on a Mac) and search it for `noindex`.
 - On WordPress: Settings → Reading → make sure "Discourage search engines from indexing this site" is unticked.
-- From a terminal (no output means no noindex):
+- From a terminal, these print the home page's robots tags and X-Robots-Tag headers, after following any redirect (without `-L`, a domain that redirects to www gives no output, which looks like a pass):
 
-      curl -s https://example.com/ | grep -i noindex
-      curl -sI https://example.com/ | grep -i x-robots-tag
+      curl -sL https://example.com/ | grep -ioE '<meta[^>]*name=.?(robots|googlebot)[^>]*>'
+      curl -sIL https://example.com/ | grep -i x-robots-tag
+
+- Look for `noindex`, or `none` on its own (Google: "Equivalent to noindex, nofollow"). `index, follow` or no output is fine.
 
 ## 3. Check robots.txt is not blocking the crawler
 

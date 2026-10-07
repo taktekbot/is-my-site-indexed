@@ -56,6 +56,8 @@ category: DeveloperApplication
             s = s.replace(/^https?:\/\//, '');
             s = s.split('/')[0].split('?')[0].split('#')[0];
             s = s.split('@').pop().split(':')[0].replace(/^www\./, '');
+            // accented domains (café.fr) become their xn-- form instead of losing letters
+            try { s = new URL('http://' + s.replace(/\s/g, '')).hostname; } catch (e) {}
             return s.replace(/[^a-z0-9.-]/g, '');
           }
 
@@ -87,8 +89,8 @@ category: DeveloperApplication
               },
               {
                 title: 'Check for a stray noindex',
-                why: 'One tag tells Google to keep a page out of its results. Open your home page, right-click it, choose View Page Source (or press Ctrl+U; Cmd+Option+U on a Mac, Cmd+U in Firefox) and search the source for noindex. On WordPress, look under Settings, Reading, "Discourage search engines". From a terminal, these two lines check the page and its headers; no output means no noindex:',
-                code: 'curl -s ' + home + ' | grep -i noindex\ncurl -sI ' + home + ' | grep -i x-robots-tag',
+                why: 'One tag tells Google to keep a page out of its results. Open your home page, right-click it, choose View Page Source (or press Ctrl+U; Cmd+Option+U on a Mac, Cmd+U in Firefox) and search the source for noindex; it counts when it sits in a robots meta tag, not in a script or a plugin name. On WordPress, look under Settings, Reading, "Discourage search engines". From a terminal, these two lines print the page\'s robots tags and headers, after following any redirect (without -L, a domain that redirects to www prints nothing, which looks like a pass). Look for noindex, or none on its own (it means noindex, nofollow); index, follow or no output is fine:',
+                code: 'curl -sL ' + home + " | grep -ioE '<meta[^>]*name=.?(robots|googlebot)[^>]*>'\ncurl -sIL " + home + ' | grep -i x-robots-tag',
                 links: [{ href: home, go: 'Open your home page' }]
               },
               {
