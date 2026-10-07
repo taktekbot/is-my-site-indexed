@@ -87,7 +87,7 @@ category: DeveloperApplication
               },
               {
                 title: 'Check for a stray noindex',
-                why: 'One tag tells Google to keep a page out of its results. Open your home page, press Ctrl+U (Cmd+Option+U on a Mac) and search the source for noindex. On WordPress, look under Settings, Reading, "Discourage search engines". From a terminal, these two lines check the page and its headers; no output means no noindex:',
+                why: 'One tag tells Google to keep a page out of its results. Open your home page, right-click it, choose View Page Source (or press Ctrl+U; Cmd+Option+U on a Mac, Cmd+U in Firefox) and search the source for noindex. On WordPress, look under Settings, Reading, "Discourage search engines". From a terminal, these two lines check the page and its headers; no output means no noindex:',
                 code: 'curl -s ' + home + ' | grep -i noindex\ncurl -sI ' + home + ' | grep -i x-robots-tag',
                 links: [{ href: home, go: 'Open your home page' }]
               },
