@@ -22,6 +22,10 @@ People paste more than a bare domain. The page handles:
 - a free address on a host's domain (myshopify.com, wordpress.com, blogspot.com, netlify.app and others): step 5 offers a URL-prefix property, since a Domain property needs a DNS record the owner can't add;
 - a name with no domain ending: it asks for the address instead.
 
+## Sending it on
+
+Under the list, "Copy the checklist to send" puts the whole checklist on the clipboard as plain text: each step, the terminal lines, and every link in full, for an owner to paste into an email to whoever built their site. Nothing is sent by the page. The only count is one Google Analytics event, `summary_copied`, and not after "Try a sample".
+
 ## Files
 
 - `src.html`: the tool itself (markup, style and script).

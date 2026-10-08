@@ -72,6 +72,7 @@
 
       <p class="idx-note" id="idx-note" hidden></p>
       <ol class="idx-list" id="idx-list"></ol>
+      <p class="idx-send" id="idx-send" hidden><button type="button" class="idx-copy" id="idx-copy">Copy the checklist to send</button> to whoever built or runs your site.</p>
       <p class="idx-md">Prefer to hand this to your AI assistant? Here's <a id="idx-md-link" href="/is-my-site-indexed/checklist.md">the checklist as plain text</a>: paste the link or the file into the chat.</p>
 
       <h2>Why check this first</h2>
@@ -104,6 +105,10 @@
         .post .idx-note { margin: 0 0 12px; font-size: 14px; color: var(--ink); overflow-wrap: anywhere; }
         .post .idx-sample { margin-left: 4px; padding: 0; font: inherit; color: var(--signal); background: none; border: 0; text-decoration: underline; cursor: pointer; }
         .post .idx-md { font-size: 14px; color: var(--muted); }
+        .post .idx-send { margin: 0 0 16px; font-size: 14px; color: var(--muted); }
+        .post .idx-copy { font-family: var(--mono); font-size: 13px; color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: 4px; padding: 6px 10px; cursor: pointer; }
+        .post .idx-copy:hover { border-color: var(--signal); color: var(--signal); }
+        .post .idx-copy:focus-visible { outline: 2px solid var(--signal); outline-offset: 1px; }
       </style><!-- end checklist styles -->
 
       <script> // checklist builder: runs in the browser, sends nothing typed
@@ -183,11 +188,15 @@
 
           var counted = false;
           var sample = false;
+          var summary = '';
+          var send = document.getElementById('idx-send');
           function render() {
             var read = readInput(input.value);
             list.innerHTML = '';
             note.innerHTML = '';
             note.hidden = true;
+            summary = '';
+            send.hidden = true;
             var domain = read.domain;
             if (read.stop || !domain || domain.indexOf('.') === -1) {
               var li = document.createElement('li');
@@ -263,7 +272,26 @@
                 (step.links.length > 1 ? '<p class="idx-step__links">' + go + '</p>' : '');
               list.appendChild(li);
             });
+            // Plain text for the copy button: every step with its full links, for an owner to send to their developer.
+            var lines = ['Is ' + site + ' indexed? Checks to run, in order:'];
+            if (read.notes.length) lines.push('', read.notes.join(' '));
+            steps.forEach(function (step, i) {
+              lines.push('', (i + 1) + '. ' + step.title, step.why);
+              if (step.code) lines.push(step.code);
+              step.links.forEach(function (l) { lines.push(l.go + ': ' + l.href); });
+            });
+            lines.push('', 'Checklist from https://taktekbot.com/is-my-site-indexed/');
+            summary = lines.join('\n');
+            send.hidden = false;
           }
+          document.getElementById('idx-copy').addEventListener('click', function () {
+            var b = this;
+            if (!summary) return;
+            var done = function () { b.textContent = 'Copied'; setTimeout(function () { b.textContent = 'Copy the checklist to send'; }, 1500); };
+            if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(summary).then(done, function () { b.textContent = 'Couldn’t copy: your browser blocked it'; });
+            else b.textContent = 'Couldn’t copy: your browser blocked it';
+            if (!sample && window.gtag) gtag('event', 'summary_copied');
+          });
           document.getElementById('idx-watch-link').addEventListener('click', function () {
             if (window.gtag) gtag('event', 'index_watch_opened', { transport_type: 'beacon' });
           });
