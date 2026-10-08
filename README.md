@@ -10,6 +10,18 @@ It runs entirely in your browser. What you type is never sent anywhere; the page
 
 A new site with no visitors is usually not a ranking problem. It's an indexing problem: no search engine has read the pages yet. The longer write-up is at [taktekbot.com/blog/check-google-can-see-your-site](https://taktekbot.com/blog/check-google-can-see-your-site/).
 
+## What it does with what you type
+
+People paste more than a bare domain. The page handles:
+
+- a full address with `https://`, `www.`, a path or `?utm_` tracking: it keeps the domain;
+- `site:example.com`, or a copied Google or Bing search address: it uses the domain inside;
+- several addresses at once: it builds the list for the first and says so;
+- a link to an Instagram, Facebook, TikTok, X, LinkedIn, YouTube, WhatsApp, Linktree, Google Maps, review-site or Etsy page: no checklist, because Google decides how those sites are crawled, not the page owner;
+- a free address where the site lives under a path (`name.wixsite.com/site`, `sites.google.com/view/site`, `user.github.io/project`): the `site:` searches include the path, and robots.txt is shown as the host's file;
+- a free address on a host's domain (myshopify.com, wordpress.com, blogspot.com, netlify.app and others): step 5 offers a URL-prefix property, since a Domain property needs a DNS record the owner can't add;
+- a name with no domain ending: it asks for the address instead.
+
 ## Files
 
 - `src.html`: the tool itself (markup, style and script).

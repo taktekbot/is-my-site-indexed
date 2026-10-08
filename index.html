@@ -70,6 +70,7 @@
         <p class="idx-hint">Just the domain, with or without <code>https://</code>. <button type="button" class="idx-sample" id="idx-sample">Try a sample</button></p>
       </div>
 
+      <p class="idx-note" id="idx-note" hidden></p>
       <ol class="idx-list" id="idx-list"></ol>
       <p class="idx-md">Prefer to hand this to your AI assistant? Here's <a id="idx-md-link" href="/is-my-site-indexed/checklist.md">the checklist as plain text</a>: paste the link or the file into the chat.</p>
 
@@ -100,6 +101,7 @@
         .post .idx-step__links { margin: 8px 0 0; display: flex; flex-wrap: wrap; gap: 4px 16px; }
         .post .idx-code { margin: 10px 0 0; font-size: 12.5px; overflow-x: auto; }
         .idx-empty { color: var(--faint); font-size: 14px; }
+        .post .idx-note { margin: 0 0 12px; font-size: 14px; color: var(--ink); overflow-wrap: anywhere; }
         .post .idx-sample { margin-left: 4px; padding: 0; font: inherit; color: var(--signal); background: none; border: 0; text-decoration: underline; cursor: pointer; }
         .post .idx-md { font-size: 14px; color: var(--muted); }
       </style><!-- end checklist styles -->
@@ -108,6 +110,7 @@
         (function () {
           var input = document.getElementById('idx-domain');
           var list = document.getElementById('idx-list');
+          var note = document.getElementById('idx-note');
 
           function cleanDomain(raw) {
             var s = (raw || '').trim().toLowerCase();
@@ -116,7 +119,60 @@
             s = s.split('@').pop().split(':')[0].replace(/^www\./, '');
             // accented domains (café.fr) become their xn-- form instead of losing letters
             try { s = new URL('http://' + s.replace(/\s/g, '')).hostname; } catch (e) {}
-            return s.replace(/[^a-z0-9.-]/g, '');
+            return s.replace(/[^a-z0-9.-]/g, '').replace(/\.+$/, '');
+          }
+
+          // Pages on someone else's site: Google decides about these, not the owner
+          var PROFILES = [
+            [/(^|\.)instagram\.com$/, 'an Instagram profile'], [/(^|\.)(facebook|fb)\.com$/, 'a Facebook page'],
+            [/(^|\.)tiktok\.com$/, 'a TikTok profile'], [/(^|\.)(x|twitter)\.com$/, 'an X profile'],
+            [/(^|\.)linkedin\.com$/, 'a LinkedIn page'], [/(^|\.)(youtube\.com|youtu\.be)$/, 'a YouTube link'],
+            [/^(wa\.me|api\.whatsapp\.com|chat\.whatsapp\.com)$/, 'a WhatsApp link'], [/^linktr\.ee$/, 'a Linktree page'],
+            [/^(maps\.app\.goo\.gl|goo\.gl|g\.page|g\.co|maps\.google\.[a-z.]+)$/, 'a Google Maps link'],
+            [/(^|\.)(yelp|tripadvisor)\.[a-z.]+$/, 'a review-site listing'], [/(^|\.)etsy\.com$/, 'an Etsy shop']
+          ];
+          // Free addresses where the site lives under a path on the host's domain
+          var PATH_HOSTS = [
+            [/\.wixsite\.com$/, 1], [/^sites\.google\.com$/, 2], [/\.github\.io$/, 1], [/\.gitlab\.io$/, 1]
+          ];
+          // Free addresses on the host's domain: no Domain property possible
+          var FREE_HOSTS = /\.(wixsite\.com|myshopify\.com|wordpress\.com|blogspot\.com|github\.io|gitlab\.io|netlify\.app|vercel\.app|pages\.dev|weebly\.com|square\.site|webflow\.io|godaddysites\.com|carrd\.co|framer\.website|squarespace\.com)$|^sites\.google\.com$/;
+
+          // Turns whatever was pasted into { domain, path, notes } or { stop }
+          function readInput(raw) {
+            var s = (raw || '').trim().replace(/^site:\s*/i, '');
+            var notes = [];
+            // a copied Google or Bing site: search: use the address inside it
+            var q = s.match(/[?&]q=([^&#]*)/i);
+            if (q && /(^|\/\/|\.)(google|bing)\.[a-z.]+\//i.test(s)) {
+              var inner = decodeURIComponent(q[1].replace(/\+/g, ' ')).match(/site:\s*(\S+)/i);
+              if (inner) s = inner[1];
+            }
+            var parts = s.split(/[\s,;]+/).filter(function (p) { return /[^\s.,;]\.[^\s.,;]/.test(p) || /^https?:/i.test(p); });
+            if (!parts.length) {
+              if (/\S\s+\S/.test(s)) return { stop: 'That looks like a name, not a web address. Type the address your website opens at, like example.com.' };
+              if (s && cleanDomain(s)) return { stop: 'Add the ending too, like ' + cleanDomain(s) + '.com, or whatever your address ends in.' };
+              return { stop: '' };
+            }
+            if (parts.length > 1) notes.push('You typed ' + parts.length + ' addresses. This list is for the first, ' + parts[0] + '. Type the others one at a time.');
+            s = parts[0];
+            var domain = cleanDomain(s);
+            var host = domain;
+            for (var i = 0; i < PROFILES.length; i++) {
+              if (PROFILES[i][0].test(host) || (PROFILES[i][1] === 'a Google Maps link' && /^google\.[a-z.]+$/.test(host) && /\/maps/.test(s))) {
+                return { stop: 'That\'s ' + PROFILES[i][1] + ', not a website of your own. Google decides how ' + host + ' is crawled, so there\'s nothing on this list you could change there. Type the domain of your own website. No website yet? Then this list isn\'t for you yet.' };
+              }
+            }
+            var path = '';
+            for (var j = 0; j < PATH_HOSTS.length; j++) {
+              if (PATH_HOSTS[j][0].test(host)) {
+                var segs = s.replace(/^https?:\/\//i, '').split(/[?#]/)[0].split('/').slice(1).filter(Boolean);
+                if (segs.length >= PATH_HOSTS[j][1] && segs[0].indexOf('.') === -1) path = segs.slice(0, PATH_HOSTS[j][1]).join('/').toLowerCase().replace(/[^a-z0-9._~\/-]/g, '');
+                else if (/^sites\.google\.com$/.test(host)) return { stop: 'Add the rest of your Google Sites address, the part after sites.google.com, like sites.google.com/view/your-site.' };
+              }
+            }
+            if (/\.myshopify\.com$/.test(host)) notes.push('If your shop also has a domain of its own, type that one instead: Google lists the address your shop opens at.');
+            return { domain: domain, path: path, free: FREE_HOSTS.test(host), notes: notes };
           }
 
           function esc(s) {
@@ -128,22 +184,29 @@
           var counted = false;
           var sample = false;
           function render() {
-            var domain = cleanDomain(input.value);
+            var read = readInput(input.value);
             list.innerHTML = '';
-            if (!domain || domain.indexOf('.') === -1) {
+            note.innerHTML = '';
+            note.hidden = true;
+            var domain = read.domain;
+            if (read.stop || !domain || domain.indexOf('.') === -1) {
               var li = document.createElement('li');
               li.className = 'idx-empty';
-              li.textContent = 'Type a domain above to build the checklist.';
+              li.textContent = read.stop || 'Type a domain above to build the checklist.';
               list.appendChild(li);
               return;
             }
+            var site = domain + (read.path ? '/' + read.path : '');
+            if (read.path) read.notes.push('Your site lives at ' + site + ', under the host\'s own domain, so the searches below look there and not at all of ' + domain + '.');
+            if (read.notes.length) { note.textContent = read.notes.join(' '); note.hidden = false; }
             if (!sample && !counted && window.gtag) { counted = true; gtag('event', 'checklist_built'); }
-            var home = 'https://' + domain + '/';
+            var root = 'https://' + domain + '/';
+            var home = 'https://' + site + '/';
             var steps = [
               {
                 title: 'Ask Google what it has seen',
                 why: 'Zero results means Google has not read a single page yet. That is an indexing problem, not an SEO problem. A few results is fine: site: shows a sample, not every page Google has.',
-                links: [{ href: 'https://www.google.com/search?q=' + encodeURIComponent('site:' + domain), go: 'Run the site: search' }]
+                links: [{ href: 'https://www.google.com/search?q=' + encodeURIComponent('site:' + site), go: 'Run the site: search' }]
               },
               {
                 title: 'Check for a stray noindex',
@@ -153,13 +216,14 @@
               },
               {
                 title: 'Check robots.txt is not blocking the crawler',
-                why: 'A leftover "Disallow: /" from a staging site is the most common reason a finished site stays invisible. A "Sitemap:" line here also tells you where your sitemap lives. To see which line blocks which page, paste the file into the robots.txt tester.',
-                links: [{ href: home + 'robots.txt', go: 'Open robots.txt' }, { href: 'https://taktekbot.com/robots-txt-tester/', go: 'Test it against your URLs' }]
+                why: 'A leftover "Disallow: /" from a staging site is the most common reason a finished site stays invisible. A "Sitemap:" line here also tells you where your sitemap lives. To see which line blocks which page, paste the file into the robots.txt tester.' +
+                  (read.path ? ' On your address the file sits at ' + root + 'robots.txt and belongs to the host: you can read it, and check it doesn\'t block ' + home + ', but you can\'t change it.' : ''),
+                links: [{ href: root + 'robots.txt', go: 'Open robots.txt' }, { href: 'https://taktekbot.com/robots-txt-tester/', go: 'Test it against your URLs' }]
               },
               {
                 title: 'Check the sitemap is actually there',
                 why: 'A sitemap that 404s cannot be submitted. Open it and confirm it lists your real pages. If /sitemap.xml is missing, try the other usual places: WordPress builds /wp-sitemap.xml itself, and SEO plugins often use /sitemap_index.xml.',
-                links: [
+                links: read.path ? [{ href: home + 'sitemap.xml', go: 'sitemap.xml' }] : [
                   { href: home + 'sitemap.xml', go: 'sitemap.xml' },
                   { href: home + 'wp-sitemap.xml', go: 'wp-sitemap.xml' },
                   { href: home + 'sitemap_index.xml', go: 'sitemap_index.xml' }
@@ -167,7 +231,9 @@
               },
               {
                 title: 'Tell Google in Search Console',
-                why: 'Add a property. A Domain property (' + domain + ') also covers www and http, but you can only verify it with a DNS record at the company you bought the domain from. A URL-prefix property has to match the exact address your home page opens at (' + home + ', or with www if yours has it); it can be verified with an HTML file, a meta tag, or the Google Analytics tag already on your site. Then submit the sitemap from step 4 under Sitemaps. To check one page, paste its address into the bar at the top (URL Inspection). "URL is on Google" means it can appear in results; "URL is not on Google" means it can\'t yet, and the Crawl section says why. Click Request Indexing once for your home page; asking again won\'t speed it up.',
+                why: (read.free
+                  ? 'Add a URL-prefix property for ' + home + '. A Domain property isn\'t possible on this address: it needs a DNS record on ' + domain.split('.').slice(-2).join('.') + ', and that domain belongs to your host. It can be verified with an HTML file, a meta tag, or a Google Analytics tag, if your host lets you add one. If it doesn\'t, a domain of your own fixes that.'
+                  : 'Add a property. A Domain property (' + domain + ') also covers www and http, but you can only verify it with a DNS record at the company you bought the domain from. A URL-prefix property has to match the exact address your home page opens at (' + home + ', or with www if yours has it); it can be verified with an HTML file, a meta tag, or the Google Analytics tag already on your site.') + ' Then submit the sitemap from step 4 under Sitemaps. To check one page, paste its address into the bar at the top (URL Inspection). "URL is on Google" means it can appear in results; "URL is not on Google" means it can\'t yet, and the Crawl section says why. Click Request Indexing once for your home page; asking again won\'t speed it up.',
                 links: [{ href: 'https://search.google.com/search-console', go: 'Open Search Console' }]
               },
               {
@@ -178,7 +244,7 @@
               {
                 title: 'Ask Bing what it has seen',
                 why: 'The same check as step 1, on the index that step 6 feeds.',
-                links: [{ href: 'https://www.bing.com/search?q=' + encodeURIComponent('site:' + domain), go: 'Run the site: search' }]
+                links: [{ href: 'https://www.bing.com/search?q=' + encodeURIComponent('site:' + site), go: 'Run the site: search' }]
               }
             ];
             steps.forEach(function (step, i) {
